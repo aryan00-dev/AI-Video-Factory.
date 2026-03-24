@@ -1,0 +1,37 @@
+name: AI Video Factory Automation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-generate-video:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install FFmpeg
+      run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+    - name: Install Requirements
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests gTTS
+
+    - name: Run AI Video Generator Script
+      env:
+        NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      run: python main.py
+
+    - name: Upload Final Video
+      uses: actions/upload-artifact@v4
+      with:
+        name: Final-AI-Video
+        path: final_video.mp4
+        retention-days: 5
