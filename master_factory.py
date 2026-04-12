@@ -1,44 +1,44 @@
 import os
 from brain import get_script
 from voice_engine import make_audio
-from visual_engine import make_video
+from visual_engine import make_image
 
-# Super Filter: Hidden spaces aur enters (\n, \r) ko apne aap hata dega
-NVIDIA_KEY = os.environ.get("NVIDIA_API_KEY", "").replace('\n', '').replace('\r', '').replace(' ', '').strip()
-FAL_KEY = os.environ.get("FAL_KEY", "").replace('\n', '').replace('\r', '').replace(' ', '').strip()
+# Super Filter: Chabiyon mein space error ko rokne ke liye
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "").replace('\n', '').replace('\r', '').replace(' ', '').strip()
+HF_KEY = os.environ.get("HUGGINGFACE_KEY", "").replace('\n', '').replace('\r', '').replace(' ', '').strip()
 
 def start_factory():
-    print("🚀 AI Video Factory chalu ho rahi hai...")
+    print("🚀 AI Video Factory (100% Free Edition) chalu ho rahi hai...")
     
-    # Topic decide karna
-    topic = "Pet ka acid aur spicy samosa ki funny ladai"
+    # Topic (Aage chalkar isko manager.py control karega)
+    topic = "Hacker aur AI ki khatarnak ladai"
+    
+    # Step 1: Brain (Gemini)
+    print("Step 1: Gemini se script aur prompt likhwaya ja raha hai...")
+    hindi_text, image_prompt = get_script(topic, GEMINI_KEY)
+    if not hindi_text or not image_prompt: return
+    print(f"📝 Script: {hindi_text}")
 
-    # 1. Brain Engine (NVIDIA Llama-3)
-    print("Step 1: Script likhi ja rahi hai...")
-    hindi_text, video_prompt = get_script(topic, NVIDIA_KEY)
-    if not hindi_text: 
-        print("❌ Script nahi bani. Code ruk gaya.")
-        return
+    # Step 2: Voice (gTTS)
+    print("Step 2: Aawaz ban rahi hai...")
+    audio_file = make_audio(hindi_text) # audio.mp3 return karega
 
-    # 2. Voice Engine (gTTS)
-    print(f"Step 2: Aawaz ban rahi hai is dialogue par: {hindi_text}")
-    audio_file = make_audio(hindi_text)
+    # Step 3: Visuals (Hugging Face)
+    print("Step 3: 4K Photo ban rahi hai...")
+    image_file = make_image(image_prompt, HF_KEY)
+    if not image_file: return
 
-    # 3. Visual Engine (Fal.ai / Luma)
-    print("Step 3: 3D Video ban rahi hai (isme 1-2 minute lagenge)...")
-    video_file = make_video(video_prompt)
-    if not video_file: 
-        print("❌ Video nahi bani. Code ruk gaya.")
-        return
-
-    # 4. Final Editor (FFmpeg)
-    print("Step 4: Final Editing (Audio aur Video ko joda ja raha hai)...")
-    os.system(f"ffmpeg -y -i {video_file} -i {audio_file} -c:v copy -c:a aac -shortest final_video.mp4")
-    print("🔥 Factory Success! final_video.mp4 taiyar hai.")
+    # Step 4: The Zoom Magic (FFmpeg)
+    print("Step 4: Final Editing (Zoom Effect aur Audio jodi ja rahi hai)...")
+    # FFmpeg ki command jo photo ko dheere-dheere zoom karegi
+    ffmpeg_command = f"ffmpeg -y -loop 1 -i {image_file} -i {audio_file} -vf \"zoompan=z='min(zoom+0.0015,1.5)':d=500\" -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest final_video.mp4"
+    os.system(ffmpeg_command)
+    
+    print("🔥 Factory Success! Tumhara 'Brahmastra' video final_video.mp4 taiyar hai.")
 
 if __name__ == "__main__":
-    # Security Check: Code shuru hone se pehle check karega ki dono chabiyan mili ya nahi
-    if not NVIDIA_KEY or not FAL_KEY:
-        print("❌ ERROR: API Keys GitHub Secrets mein theek se nahi mili. GitHub Settings check karo!")
+    # Security Check
+    if not GEMINI_KEY or not HF_KEY:
+        print("❌ ERROR: Gemini ya Hugging Face ki chabi nahi mili!")
     else:
         start_factory()
