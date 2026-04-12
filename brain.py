@@ -2,8 +2,8 @@ import requests
 import json
 
 def get_script(topic, gemini_key):
-    # Gemini API URL updated to Gemini 3 Flash model
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key={gemini_key}"
+    # Gemini API URL updated to the working Flash model
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
     headers = {'Content-Type': 'application/json'}
     
     prompt = f"Write a short, funny 2-line Hindi voiceover script about '{topic}' for an Instagram reel. Also, write a 1-line English prompt to generate a highly detailed, realistic, cinematic 4k image matching the topic. Format output EXACTLY like this:\nHINDI_SCRIPT: [Hindi text]\nIMAGE_PROMPT: [English prompt]"
