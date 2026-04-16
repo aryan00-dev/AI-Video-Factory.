@@ -4,7 +4,6 @@ import json
 def get_script(topic, gemini_key):
     headers = {'Content-Type': 'application/json'}
     
-    # Smart Engine: Auto-detect working model
     working_model = "models/gemini-1.5-flash"
     try:
         list_url = f"https://generativelanguage.googleapis.com/v1beta/models?key={gemini_key}"
@@ -19,10 +18,19 @@ def get_script(topic, gemini_key):
     except Exception as e:
         print(f"⚠️ Auto-detect error, default chalega.")
 
-    # Content Generation
     url = f"https://generativelanguage.googleapis.com/v1beta/{working_model}:generateContent?key={gemini_key}"
     
-    prompt = f"Write a short, funny 2-line Hindi voiceover script about '{topic}' for an Instagram reel. Also, write a 1-line English prompt to generate a highly detailed, realistic, cinematic 4k image matching the topic. Format output EXACTLY like this:\nHINDI_SCRIPT: [Hindi text]\nIMAGE_PROMPT: [English prompt]"
+    # Naya Viral Prompt: 30-40 Seconds & Object Conversation/Roast Format
+    prompt = f"""Write a highly engaging and funny Hindi voiceover script for an Instagram reel. 
+Length: Must be enough for a 30 to 40 seconds voiceover (approximately 70 to 80 words).
+Format: It MUST be a funny concept where two everyday things are talking, complaining, or roasting each other (For example: Aloo roasting a Samosa, a Math Book complaining to a Student, or Hair crying about a comb/oil). 
+Topic: Make it about '{topic}'. 
+Important: Since a single AI voice will read this, DO NOT write speaker names (like Aloo: or Book:). Write it as a continuous funny story, monologue, or dramatic narration.
+Also, write a 1-line English prompt to generate a funny, highly detailed, cinematic 4k image showing these two objects.
+
+Format output EXACTLY like this:
+HINDI_SCRIPT: [Insert the continuous Hindi dialogue here]
+IMAGE_PROMPT: [Insert the English image prompt here]"""
     
     payload = {
         "contents": [{"parts": [{"text": prompt}]}]
@@ -42,7 +50,6 @@ def get_script(topic, gemini_key):
         hindi_script = ""
         image_prompt = ""
         
-        # Bulletproof Parser: Stars (**) aur extra spaces ka asar khatam
         for line in text_response.split('\n'):
             clean_line = line.replace('**', '').strip()
             if "HINDI_SCRIPT:" in clean_line:
