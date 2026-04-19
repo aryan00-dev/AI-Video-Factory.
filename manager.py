@@ -1,31 +1,53 @@
 import os
 import google.generativeai as genai
+from duckduckgo_search import DDGS
+import feedparser
 
-# GitHub Secrets se API Key uthana
 API_KEY = os.environ.get("GEMINI_API_KEY")
-
 if not API_KEY:
-    print("[-] Error: GEMINI_API_KEY nahi mili!")
+    print("[-] Error: GEMINI_API_KEY missing!")
     exit(1)
 
 genai.configure(api_key=API_KEY)
 
-# Gemini Model ko wild topic sochne ka command
-model = genai.GenerativeModel('gemini-1.5-flash') # Fast model for quick topic generation
-prompt = """Tum ek highly creative comedy aur roasting writer ho. 
-Mujhe 'Object Roasting' ke liye ek bilkul naya, ajeeb aur wild topic do jo aaj tak kisi ne na socha ho.
-Limitless raho (e.g., Space, History, Daily items, Emotions).
-Format strictly yahi hona chahiye: [Object 1] roasting [Object 2].
-Example: 'Ek Tuta hua Kanch roasting a Diamond', 'Black Hole roasting a Torch light'.
-Sirf aur sirf topic ka naam likho, koi extra word nahi."""
+def get_latest_news():
+    news_data = ""
+    print("[+] Radar Active: Scanning RSS Feeds & Open Web...")
+    try:
+        feed = feedparser.parse("https://techcrunch.com/category/artificial-intelligence/feed/")
+        for entry in feed.entries[:2]:
+            news_data += f"- {entry.title}\n"
+    except: pass
 
-try:
-    response = model.generate_content(prompt)
-    topic = response.text.strip()
-    
-    with open("current_topic.txt", "w", encoding="utf-8") as f:
-        f.write(topic)
-        
-    print(f"[+] Limitless Manager: Aaj ka wild topic hai -> {topic}")
-except Exception as e:
-    print(f"[-] Topic generate karne mein error aaya: {e}")
+    try:
+        with DDGS() as ddgs:
+            results = ddgs.text("new open source AI tools", max_results=2)
+            for r in results:
+                news_data += f"- {r['title']}\n"
+    except: pass
+    return news_data
+
+def generate_viral_script(news_data):
+    print("[+] Brain Active: Applying Dark Psychology...")
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    prompt = f"""Tum ek expert AI Tech Video creator ho.
+    News: {news_data}
+    Ek 20-second ki Hinglish short video script likho.
+    RULES:
+    1. Hook humesha FOMO se start ho (e.g., "Agar tum abhi bhi ChatGPT use kar rahe ho...").
+    2. Tool ka naam aur "Free" nature highlight karo.
+    3. Max 45 words. Sirf spoken text do.
+    """
+    try:
+        response = model.generate_content(prompt)
+        return response.text.strip().replace('*', '').replace('"', '')
+    except:
+        return "Agar tum abhi bhi purane tools use kar rahe ho, toh tum bohot peeche ho. Yeh naya free AI tool khatarnak hai."
+
+if __name__ == "__main__":
+    news = get_latest_news()
+    script = generate_viral_script(news)
+    with open("current_script.txt", "w", encoding="utf-8") as f:
+        f.write(script)
+    print(f"[SUCCESS] Viral Script Ready: {script}")
+
