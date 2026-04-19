@@ -1,99 +1,82 @@
 import os
 import random
 import requests
+import urllib.request
 from gtts import gTTS
 from moviepy.editor import *
-import urllib.request
 
-# Keys
 HF_KEY = os.environ.get("HUGGINGFACE_KEY")
 
-# 1. Random Vibe Generator (Aesthetics)
 THEMES = [
-    {"name": "Hacker", "bg": (10, 15, 10), "power_color": "yellow", "normal_color": "white"},
-    {"name": "Synthwave", "bg": (20, 5, 20), "power_color": "cyan", "normal_color": "white"},
-    {"name": "Alert", "bg": (15, 5, 5), "power_color": "red", "normal_color": "white"},
-    {"name": "Clean Tech", "bg": (5, 10, 20), "power_color": "green", "normal_color": "white"}
+    {"name": "Hacker", "bg": (10, 15, 10), "power": "yellow", "normal": "white"},
+    {"name": "Synthwave", "bg": (20, 5, 20), "power": "cyan", "normal": "white"},
+    {"name": "Alert", "bg": (15, 5, 5), "power": "red", "normal": "white"}
 ]
 POWER_WORDS = ["ai", "free", "khatarnak", "secret", "hack", "website", "illegal", "viral", "chatgpt"]
 
-def get_free_hf_voice(text, filename="audio.mp3"):
-    print("[+] Voice Engine: Calling Hugging Face Open-Source Model...")
-    # HF Inference API Endpoint (Free TTS fallback)
+def get_voice(text, filename="audio.mp3"):
+    print("[+] Calling Hugging Face Open-Source Voice...")
     API_URL = "https://api-inference.huggingface.co/models/facebook/mms-tts-hin"
     headers = {"Authorization": f"Bearer {HF_KEY}"}
-    
     try:
-        response = requests.post(API_URL, headers=headers, json={"inputs": text}, timeout=15)
-        if response.status_code == 200:
+        res = requests.post(API_URL, headers=headers, json={"inputs": text}, timeout=15)
+        if res.status_code == 200:
             with open(filename, 'wb') as f:
-                f.write(response.content)
-            print("[+] Voice Engine: Real AI Voice Generated via HF!")
-            return True
-    except Exception as e:
-        print(f"[-] HF Server Busy. Error: {e}")
-    
-    print("[!] Fail-Safe Active: Using gTTS Backup...")
-    tts = gTTS(text=text, lang='hi', slow=False)
-    tts.save(filename)
-    return True
+                f.write(res.content)
+            return
+    except: pass
+    print("[!] Fallback: Using gTTS...")
+    gTTS(text=text, lang='hi', slow=False).save(filename)
+
+def get_bgm(filename="bgm.mp3"):
+    print("[+] Fetching Free BGM...")
+    try:
+        # Public domain safe loop
+        url = "https://upload.wikimedia.org/wikipedia/commons/4/4e/A_minor_tech_loop.ogg"
+        urllib.request.urlretrieve(url, filename)
+        return True
+    except:
+        print("[-] BGM Fetch failed. Proceeding without BGM.")
+        return False
 
 def build_video():
-    print("[SYSTEM] Final Master Editor Initiated...")
-    
-    # Read viral script
-    try:
-        with open("current_script.txt", "r", encoding="utf-8") as f:
-            script = f.read().strip()
-    except:
-        script = "Agar tum abhi bhi ChatGPT use kar rahe ho, toh tum bohot peeche ho. Yeh naya secret free AI website khatarnak hai."
+    with open("current_script.txt", "r", encoding="utf-8") as f:
+        script = f.read().strip()
         
-    # Generate Voice
-    get_free_hf_voice(script, "audio.mp3")
-    audio_clip = AudioFileClip("audio.mp3")
-    total_duration = audio_clip.duration
-
-    # Select Theme
-    theme = random.choice(THEMES)
-    print(f"[+] Vibe Generator: Selected '{theme['name']}' Theme")
+    get_voice(script, "audio.mp3")
+    voice_clip = AudioFileClip("audio.mp3")
     
-    # Deep Dark Aesthetic Background (Color Grading)
-    bg_clip = ColorClip(size=(1080, 1920), color=theme["bg"], duration=total_duration)
+    if get_bgm("bgm.mp3"):
+        bgm_clip = AudioFileClip("bgm.mp3").volumex(0.1).set_duration(voice_clip.duration)
+        final_audio = CompositeAudioClip([voice_clip, bgm_clip])
+    else:
+        final_audio = voice_clip
 
-    # Typography Math Engine (Sync & Bounce)
+    theme = random.choice(THEMES)
+    bg_clip = ColorClip(size=(1080, 1920), color=theme["bg"], duration=final_audio.duration)
+
     words = script.split()
-    time_per_word = total_duration / len(words)
+    time_per_word = final_audio.duration / len(words)
     text_clips = []
     current_time = 0.0
     
     for word in words:
-        clean_word = "".join(e for e in word if e.isalnum()).lower()
-        
-        # Word Importance Logic
-        if len(clean_word) > 5 or clean_word in POWER_WORDS:
-            color = theme["power_color"]
-            font_size = 140
+        clean = "".join(e for e in word if e.isalnum()).lower()
+        if len(clean) > 5 or clean in POWER_WORDS:
+            color, size = theme["power"], 140
         else:
-            color = theme["normal_color"]
-            font_size = 90
+            color, size = theme["normal"], 90
             
-        # Creating Bouncy Text Clip
-        txt_clip = (TextClip(word, fontsize=font_size, color=color, font='Arial-Bold', method='caption', size=(900, None))
-                    .set_position('center')
-                    .set_start(current_time)
-                    .set_duration(time_per_word)
-                    .crossfadein(0.05)) # Smooth Pop-up effect
-                    
-        text_clips.append(txt_clip)
+        txt = (TextClip(word, fontsize=size, color=color, font='Arial-Bold', method='caption', size=(900, None))
+               .set_position('center')
+               .set_start(current_time)
+               .set_duration(time_per_word)
+               .crossfadein(0.05))
+        text_clips.append(txt)
         current_time += time_per_word
 
-    # Final Render
-    print("[+] Assembling Video Elements...")
-    final_video = CompositeVideoClip([bg_clip] + text_clips).set_audio(audio_clip)
-    
-    output_name = "final_tech_viral_video.mp4"
-    final_video.write_videofile(output_name, fps=30, codec="libx264", audio_codec="aac")
-    print(f"[SUCCESS] Video Rendered: {output_name}")
+    final_video = CompositeVideoClip([bg_clip] + text_clips).set_audio(final_audio)
+    final_video.write_videofile("final_tech_viral_video.mp4", fps=24, codec="libx264", audio_codec="aac")
 
 if __name__ == "__main__":
     build_video()
