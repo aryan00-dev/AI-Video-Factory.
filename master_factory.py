@@ -1,44 +1,83 @@
 import os
-from brain import get_script
-from voice_engine import make_audio
-from visual_engine import make_image
+import time
+import requests
+import google.generativeai as genai
+from gtts import gTTS
+from moviepy.editor import *
+import urllib.request
 
-# Super Filter: Chabiyon mein space error ko rokne ke liye
-GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "").replace('\n', '').replace('\r', '').replace(' ', '').strip()
-HF_KEY = os.environ.get("HUGGINGFACE_KEY", "").replace('\n', '').replace('\r', '').replace(' ', '').strip()
+# API Keys
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_KEY)
 
-def start_factory():
-    print("🚀 AI Video Factory (100% Free Edition) chalu ho rahi hai...")
+def create_video():
+    print("[SYSTEM] Master Factory Initiated...")
     
-    # Topic (Aage chalkar isko manager.py control karega)
-    topic = "Hacker aur AI ki khatarnak ladai"
+    # 1. Read Topic
+    try:
+        with open("current_topic.txt", "r") as f:
+            topic = f.read().strip()
+    except:
+        topic = "A smartphone roasting a classic Nokia 3310"
     
-    # Step 1: Brain (Gemini)
-    print("Step 1: Gemini se script aur prompt likhwaya ja raha hai...")
-    hindi_text, image_prompt = get_script(topic, GEMINI_KEY)
-    if not hindi_text or not image_prompt: return
-    print(f"📝 Script: {hindi_text}")
+    print(f"[+] Topic Loaded: {topic}")
 
-    # Step 2: Voice (gTTS)
-    print("Step 2: Aawaz ban rahi hai...")
-    audio_file = make_audio(hindi_text) # audio.mp3 return karega
+    # 2. Gemini Viral Script (Hindi/Hinglish)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    prompt = f"Write a fast-paced, highly engaging 20-second short video script roasting on the topic: '{topic}'. Use Hinglish. Make it punchy. Only give the spoken text, no brackets or visual instructions. Max 40 words."
+    response = model.generate_content(prompt)
+    script_text = response.text.strip().replace('*', '').replace('"', '')
+    print(f"[+] Script Generated: {script_text}")
 
-    # Step 3: Visuals (Hugging Face)
-    print("Step 3: 4K Photo ban rahi hai...")
-    image_file = make_image(image_prompt, HF_KEY)
-    if not image_file: return
-
-    # Step 4: The Zoom Magic (FFmpeg)
-    print("Step 4: Final Editing (Zoom Effect aur Audio jodi ja rahi hai)...")
-    # FFmpeg ki command jo photo ko dheere-dheere zoom karegi
-    ffmpeg_command = f"ffmpeg -y -loop 1 -i {image_file} -i {audio_file} -vf \"zoompan=z='min(zoom+0.0015,1.5)':d=500\" -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest final_video.mp4"
-    os.system(ffmpeg_command)
+    # 3. Voice Engine (gTTS)
+    print("[+] Generating Audio...")
+    tts = gTTS(text=script_text, lang='hi', slow=False)
+    tts.save("audio.mp3")
     
-    print("🔥 Factory Success! Tumhara 'Brahmastra' video final_video.mp4 taiyar hai.")
+    # Load Audio in MoviePy
+    audio_clip = AudioFileClip("audio.mp3")
+    duration = audio_clip.duration
+
+    # 4. Background Engine (Fail-safe solid dark aesthetic)
+    print("[+] Generating Samachar Style Background...")
+    # Using a solid dark grey/black background for typography pop
+    bg_clip = ColorClip(size=(1080, 1920), color=(15, 15, 15), duration=duration)
+
+    # 5. Kinetic Typography Engine (Math-based Sync for 100% Fail-Proof Render)
+    print("[+] Generating Typography overlays...")
+    words = script_text.split()
+    time_per_word = duration / len(words)
+    
+    text_clips = []
+    current_time = 0.0
+    
+    for i, word in enumerate(words):
+        # Samachar Style Logic: Emphasize big words with Red, normal words with White
+        if len(word) > 5 or i % 4 == 0:
+            txt_color = 'yellow'
+            fontsize = 110
+        else:
+            txt_color = 'white'
+            fontsize = 90
+            
+        txt_clip = (TextClip(word, fontsize=fontsize, color=txt_color, font='Arial-Bold', method='caption', size=(900, None))
+                    .set_position('center')
+                    .set_start(current_time)
+                    .set_duration(time_per_word))
+        
+        text_clips.append(txt_clip)
+        current_time += time_per_word
+
+    # 6. Final Assembly (Merging everything)
+    print("[+] Assembling Final Video...")
+    final_video = CompositeVideoClip([bg_clip] + text_clips)
+    final_video = final_video.set_audio(audio_clip)
+    
+    # 7. Render Output
+    output_filename = "final_viral_video.mp4"
+    final_video.write_videofile(output_filename, fps=24, codec="libx264", audio_codec="aac")
+    
+    print(f"[SUCCESS] Video successfully generated and saved as {output_filename}")
 
 if __name__ == "__main__":
-    # Security Check
-    if not GEMINI_KEY or not HF_KEY:
-        print("❌ ERROR: Gemini ya Hugging Face ki chabi nahi mili!")
-    else:
-        start_factory()
+    create_video()
