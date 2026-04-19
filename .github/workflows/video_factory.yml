@@ -1,4 +1,4 @@
-name: 50-Bot Factory Tech-AI Engine
+name: 50-Bot Factory Final Engine
 
 on:
   schedule:
@@ -33,11 +33,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install google-generativeai requests gtts pillow moviepy==1.0.3 numpy==1.24.3 duckduckgo-search feedparser
 
-    - name: 5. Run Multi-Source Radar & Brain
+    - name: 5. Execute Radar & Brain (manager.py)
       run: python manager.py
 
-    - name: 6. Run Master Factory (Free Audio + Custom Typography)
+    - name: 6. Execute Master Factory (master_factory.py)
       run: python master_factory.py
 
-    - name: 7. Run QC Bot (Quality Check)
+    - name: 7. Execute QC Bot (qc_bot.py)
       run: python qc_bot.py
+
+    - name: 8. Save Video to Cloud (The Black Hole Fix)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Final_Viral_Tech_Video
+        path: final_tech_viral_video.mp4
