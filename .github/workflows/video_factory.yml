@@ -1,8 +1,8 @@
-name: 50-Bot Factory Auto-Engine
+name: 50-Bot Factory Tech-AI Engine
 
 on:
   schedule:
-    - cron: '0 12 * * *'
+    - cron: '0 10 * * *' # Setup for early processing so video is ready by evening
   workflow_dispatch:
 
 jobs:
@@ -22,20 +22,19 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: 3. Install Heavy Engines (FFmpeg & ImageMagick)
+    - name: 3. Install Heavy Engines
       run: |
         sudo apt-get update
         sudo apt-get install -y ffmpeg imagemagick
-        # Fixing ImageMagick policy to allow Text Rendering (The Ultimate Bypass)
         sudo sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml
 
-    - name: 4. Install AI Libraries
+    - name: 4. Install Radar & AI Libraries
       run: |
         python -m pip install --upgrade pip
-        pip install google-generativeai requests gtts pillow moviepy==1.0.3 openai-whisper numpy numpy==1.24.3
+        pip install google-generativeai requests gtts pillow moviepy==1.0.3 numpy==1.24.3 duckduckgo-search feedparser
 
-    - name: 5. Run Limitless Manager (Brain Trigger)
+    - name: 5. Run Multi-Source Radar & Brain
       run: python manager.py
 
-    - name: 6. Run Master Factory (Typography & Final Render)
+    - name: 6. Run Master Factory
       run: python master_factory.py
