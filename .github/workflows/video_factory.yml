@@ -2,7 +2,7 @@ name: 50-Bot Factory Tech-AI Engine
 
 on:
   schedule:
-    - cron: '0 10 * * *' # Setup for early processing so video is ready by evening
+    - cron: '0 10 * * *'
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: 3. Install Heavy Engines
+    - name: 3. Install Heavy Engines (FFmpeg & ImageMagick)
       run: |
         sudo apt-get update
         sudo apt-get install -y ffmpeg imagemagick
@@ -36,5 +36,8 @@ jobs:
     - name: 5. Run Multi-Source Radar & Brain
       run: python manager.py
 
-    - name: 6. Run Master Factory
+    - name: 6. Run Master Factory (Free Audio + Custom Typography)
       run: python master_factory.py
+
+    - name: 7. Run QC Bot (Quality Check)
+      run: python qc_bot.py
