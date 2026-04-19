@@ -9,7 +9,6 @@ jobs:
   run-factory:
     runs-on: ubuntu-latest
     
-    # Boss Move: API Keys ko poore job ke liye on kar diya, taaki har bot use kar sake
     env:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       HUGGINGFACE_KEY: ${{ secrets.HUGGINGFACE_KEY }}
@@ -23,20 +22,20 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: 3. Install FFmpeg
+    - name: 3. Install Heavy Engines (FFmpeg & ImageMagick)
       run: |
         sudo apt-get update
-        sudo apt-get install -y ffmpeg
+        sudo apt-get install -y ffmpeg imagemagick
+        # Fixing ImageMagick policy to allow Text Rendering (The Ultimate Bypass)
+        sudo sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml
 
     - name: 4. Install AI Libraries
       run: |
         python -m pip install --upgrade pip
-        pip install google-generativeai requests gtts pillow
+        pip install google-generativeai requests gtts pillow moviepy==1.0.3 openai-whisper numpy numpy==1.24.3
 
-    - name: 5. Run Limitless Manager (Topic Selection)
+    - name: 5. Run Limitless Manager (Brain Trigger)
       run: python manager.py
 
-    - name: 6. Run Master Factory
-      run: |
-        # python master_factory.py (Typography lagne ke baad is line ka # hata denge)
-        echo "Master Engine successfully activated with Limitless Topics!"
+    - name: 6. Run Master Factory (Typography & Final Render)
+      run: python master_factory.py
