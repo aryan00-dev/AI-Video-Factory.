@@ -1,83 +1,99 @@
 import os
-import time
+import random
 import requests
-import google.generativeai as genai
 from gtts import gTTS
 from moviepy.editor import *
 import urllib.request
 
-# API Keys
-GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_KEY)
+# Keys
+HF_KEY = os.environ.get("HUGGINGFACE_KEY")
 
-def create_video():
-    print("[SYSTEM] Master Factory Initiated...")
+# 1. Random Vibe Generator (Aesthetics)
+THEMES = [
+    {"name": "Hacker", "bg": (10, 15, 10), "power_color": "yellow", "normal_color": "white"},
+    {"name": "Synthwave", "bg": (20, 5, 20), "power_color": "cyan", "normal_color": "white"},
+    {"name": "Alert", "bg": (15, 5, 5), "power_color": "red", "normal_color": "white"},
+    {"name": "Clean Tech", "bg": (5, 10, 20), "power_color": "green", "normal_color": "white"}
+]
+POWER_WORDS = ["ai", "free", "khatarnak", "secret", "hack", "website", "illegal", "viral", "chatgpt"]
+
+def get_free_hf_voice(text, filename="audio.mp3"):
+    print("[+] Voice Engine: Calling Hugging Face Open-Source Model...")
+    # HF Inference API Endpoint (Free TTS fallback)
+    API_URL = "https://api-inference.huggingface.co/models/facebook/mms-tts-hin"
+    headers = {"Authorization": f"Bearer {HF_KEY}"}
     
-    # 1. Read Topic
     try:
-        with open("current_topic.txt", "r") as f:
-            topic = f.read().strip()
+        response = requests.post(API_URL, headers=headers, json={"inputs": text}, timeout=15)
+        if response.status_code == 200:
+            with open(filename, 'wb') as f:
+                f.write(response.content)
+            print("[+] Voice Engine: Real AI Voice Generated via HF!")
+            return True
+    except Exception as e:
+        print(f"[-] HF Server Busy. Error: {e}")
+    
+    print("[!] Fail-Safe Active: Using gTTS Backup...")
+    tts = gTTS(text=text, lang='hi', slow=False)
+    tts.save(filename)
+    return True
+
+def build_video():
+    print("[SYSTEM] Final Master Editor Initiated...")
+    
+    # Read viral script
+    try:
+        with open("current_script.txt", "r", encoding="utf-8") as f:
+            script = f.read().strip()
     except:
-        topic = "A smartphone roasting a classic Nokia 3310"
-    
-    print(f"[+] Topic Loaded: {topic}")
-
-    # 2. Gemini Viral Script (Hindi/Hinglish)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    prompt = f"Write a fast-paced, highly engaging 20-second short video script roasting on the topic: '{topic}'. Use Hinglish. Make it punchy. Only give the spoken text, no brackets or visual instructions. Max 40 words."
-    response = model.generate_content(prompt)
-    script_text = response.text.strip().replace('*', '').replace('"', '')
-    print(f"[+] Script Generated: {script_text}")
-
-    # 3. Voice Engine (gTTS)
-    print("[+] Generating Audio...")
-    tts = gTTS(text=script_text, lang='hi', slow=False)
-    tts.save("audio.mp3")
-    
-    # Load Audio in MoviePy
+        script = "Agar tum abhi bhi ChatGPT use kar rahe ho, toh tum bohot peeche ho. Yeh naya secret free AI website khatarnak hai."
+        
+    # Generate Voice
+    get_free_hf_voice(script, "audio.mp3")
     audio_clip = AudioFileClip("audio.mp3")
-    duration = audio_clip.duration
+    total_duration = audio_clip.duration
 
-    # 4. Background Engine (Fail-safe solid dark aesthetic)
-    print("[+] Generating Samachar Style Background...")
-    # Using a solid dark grey/black background for typography pop
-    bg_clip = ColorClip(size=(1080, 1920), color=(15, 15, 15), duration=duration)
-
-    # 5. Kinetic Typography Engine (Math-based Sync for 100% Fail-Proof Render)
-    print("[+] Generating Typography overlays...")
-    words = script_text.split()
-    time_per_word = duration / len(words)
+    # Select Theme
+    theme = random.choice(THEMES)
+    print(f"[+] Vibe Generator: Selected '{theme['name']}' Theme")
     
+    # Deep Dark Aesthetic Background (Color Grading)
+    bg_clip = ColorClip(size=(1080, 1920), color=theme["bg"], duration=total_duration)
+
+    # Typography Math Engine (Sync & Bounce)
+    words = script.split()
+    time_per_word = total_duration / len(words)
     text_clips = []
     current_time = 0.0
     
-    for i, word in enumerate(words):
-        # Samachar Style Logic: Emphasize big words with Red, normal words with White
-        if len(word) > 5 or i % 4 == 0:
-            txt_color = 'yellow'
-            fontsize = 110
+    for word in words:
+        clean_word = "".join(e for e in word if e.isalnum()).lower()
+        
+        # Word Importance Logic
+        if len(clean_word) > 5 or clean_word in POWER_WORDS:
+            color = theme["power_color"]
+            font_size = 140
         else:
-            txt_color = 'white'
-            fontsize = 90
+            color = theme["normal_color"]
+            font_size = 90
             
-        txt_clip = (TextClip(word, fontsize=fontsize, color=txt_color, font='Arial-Bold', method='caption', size=(900, None))
+        # Creating Bouncy Text Clip
+        txt_clip = (TextClip(word, fontsize=font_size, color=color, font='Arial-Bold', method='caption', size=(900, None))
                     .set_position('center')
                     .set_start(current_time)
-                    .set_duration(time_per_word))
-        
+                    .set_duration(time_per_word)
+                    .crossfadein(0.05)) # Smooth Pop-up effect
+                    
         text_clips.append(txt_clip)
         current_time += time_per_word
 
-    # 6. Final Assembly (Merging everything)
-    print("[+] Assembling Final Video...")
-    final_video = CompositeVideoClip([bg_clip] + text_clips)
-    final_video = final_video.set_audio(audio_clip)
+    # Final Render
+    print("[+] Assembling Video Elements...")
+    final_video = CompositeVideoClip([bg_clip] + text_clips).set_audio(audio_clip)
     
-    # 7. Render Output
-    output_filename = "final_viral_video.mp4"
-    final_video.write_videofile(output_filename, fps=24, codec="libx264", audio_codec="aac")
-    
-    print(f"[SUCCESS] Video successfully generated and saved as {output_filename}")
+    output_name = "final_tech_viral_video.mp4"
+    final_video.write_videofile(output_name, fps=30, codec="libx264", audio_codec="aac")
+    print(f"[SUCCESS] Video Rendered: {output_name}")
 
 if __name__ == "__main__":
-    create_video()
+    build_video()
