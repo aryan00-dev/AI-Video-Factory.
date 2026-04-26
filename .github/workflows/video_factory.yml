@@ -32,7 +32,6 @@ jobs:
     - name: Install Python Libraries (Pillow Locked)
       run: |
         python -m pip install --upgrade pip
-        # PILLOW 9.5.0 LOCKED TO PERMANENTLY KILL ANTIALIAS ERROR
         pip install google-generativeai requests gtts pillow==9.5.0 moviepy==1.0.3 numpy==1.24.3 duckduckgo-search playwright groq
         python -m playwright install chromium --with-deps
 
