@@ -29,16 +29,17 @@ jobs:
         sudo apt-get install -y ffmpeg imagemagick fonts-dejavu-core
         sudo sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml
 
-    - name: Install Python Libraries, Groq Engine & Playwright
+    - name: Install Python Libraries (Pillow Locked)
       run: |
         python -m pip install --upgrade pip
-        pip install google-generativeai requests gtts pillow moviepy==1.0.3 numpy==1.24.3 duckduckgo-search playwright groq
+        # PILLOW 9.5.0 LOCKED TO PERMANENTLY KILL ANTIALIAS ERROR
+        pip install google-generativeai requests gtts pillow==9.5.0 moviepy==1.0.3 numpy==1.24.3 duckduckgo-search playwright groq
         python -m playwright install chromium --with-deps
 
     - name: Execute Radar & Brain (Groq Agent 1)
       run: python manager.py
 
-    - name: Execute Master Factory (Groq Agent 2 + Editor)
+    - name: Execute Master Factory (Groq Agent 2 + Vault Engine)
       run: python master_factory.py
 
     - name: Execute QC Bot
