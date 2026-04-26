@@ -12,9 +12,8 @@ def generate_script():
 
     client = Groq(api_key=GROQ_API_KEY)
     
-    # Advanced System Prompt for highest retention
     prompt = """
-    Write a 50-60 word highly engaging Hindi tech script for an Instagram Reel about a crazy, free, and secret AI tool (e.g., Luma Dream Machine, Qwen, Midjourney, etc). 
+    Write a 50-60 word highly engaging Hindi tech script for an Instagram Reel about a crazy, free, and secret AI tool. 
     Rules:
     1. Start exactly with the word "Ruko!". 
     2. Use words like "khatarnak", "secret", "dimaag kharab", "free". 
@@ -22,7 +21,6 @@ def generate_script():
     """
     
     try:
-        # THE FIX: Upgraded to Groq's active fast model
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama-3.1-8b-instant", 
@@ -34,7 +32,6 @@ def generate_script():
             f.write(script)
             
         print("[SUCCESS] Viral Script Ready.")
-        print(f"Script Preview: {script[:50]}...")
     except Exception as e:
         print(f"[-] Groq Script Engine Failed: {e}")
         exit(1)
