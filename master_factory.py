@@ -6,11 +6,8 @@ import urllib.parse
 import requests
 import PIL.Image
 
-# ==========================================
-# THE PILLOW 10.0 CRASH FIX (MONKEY PATCH)
 if not hasattr(PIL.Image, 'ANTIALIAS'):
     PIL.Image.ANTIALIAS = PIL.Image.Resampling.LANCZOS
-# ==========================================
 
 from gtts import gTTS
 from moviepy.editor import *
@@ -46,12 +43,10 @@ def fetch_and_record_website():
     print("[+] Deep Scan: Scanning Local Vault & Recording Stealth Screen...")
     assets = {'meme': None, 'bgm': None, 'pop': None, 'type_sfx': False, 'reveal_sfx': False, 'recording': False}
     
-    # SCANNING LOCAL ASSETS FOLDER
     assets['meme'] = get_vault_asset("assets/*.png") or get_vault_asset("assets/*.jpeg") or get_vault_asset("assets/*.jpg")
     assets['bgm'] = get_vault_asset("assets/bgm*.mp3")
     assets['pop'] = get_vault_asset("assets/pop*.mp3")
 
-    # RGBA Masking Fix for Fake PNGs
     if assets['meme']:
         try:
             img = PIL.Image.open(assets['meme']).convert("RGBA")
@@ -60,20 +55,17 @@ def fetch_and_record_website():
         except Exception as e:
             print(f"[-] Image Lock Warning: {e}")
 
-    # Cinematic Sounds
     type_sfx_url = "https://upload.wikimedia.org/wikipedia/commons/2/23/Keyboard_Type.ogg"
     reveal_sfx_url = "https://upload.wikimedia.org/wikipedia/commons/a/aa/A_major_tech_stinger.ogg"
     assets['type_sfx'] = download_audio(type_sfx_url, 'live_type.ogg')
     assets['reveal_sfx'] = download_audio(reveal_sfx_url, 'live_reveal.ogg')
 
-    # AI-POWERED SEARCH ENGINE BYPASS
     try:
         with open("current_script.txt", "r", encoding="utf-8") as f:
             script_text = f.read()
         
-        print("[+] Asking Groq AI for tool name for stealth search...")
         client = Groq(api_key=GROQ_API_KEY)
-        prompt = f"Read this Hindi tech script. Identify the main AI tool being promoted. Return ONLY its official name (e.g. Qwen, Luma Labs). Return absolutely nothing else. Script: {script_text}"
+        prompt = f"Read this Hindi tech script. Identify the main AI tool being promoted. Return ONLY its official name. Return absolutely nothing else. Script: {script_text}"
         
         tool_name = "AI Tool official" 
         try:
@@ -88,8 +80,6 @@ def fetch_and_record_website():
         query = urllib.parse.quote(f"{tool_name} AI tool official website")
         tool_url = f"https://duckduckgo.com/?q={query}"
                 
-        print(f"[+] Recording Stealth Target: {tool_url}")
-        
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             context = browser.new_context(
@@ -131,12 +121,8 @@ def get_voice(text, filename="audio.mp3"):
     except: pass
     
     if use_fallback:
-        print("[-] HF API failed. gTTS Fallback locked.")
         gTTS(text=text, lang='hi', slow=False).save(filename)
 
-# ==========================================
-# THE CINEMATIC SEQUENCER EDITOR (PHASE-WISE)
-# ==========================================
 def build_video():
     assets = fetch_and_record_website()
     with open("current_script.txt", "r", encoding="utf-8") as f:
@@ -171,7 +157,6 @@ def build_video():
 
     REVEAL_TIME = 2.8 
 
-    # Phase 2: Card Reveal
     for i in range(int(total_duration // 3.5) + 2):
         c = BG_COLORS[i % len(BG_COLORS)]
         start_time = max(REVEAL_TIME, i * 3.5)
@@ -208,7 +193,6 @@ def build_video():
                 audio_elements.append(AudioFileClip("live_reveal.ogg").volumex(1.0).set_start(REVEAL_TIME))
             except: pass
 
-    # Phase 1: Meme Hook
     if assets['meme']:
         try:
             meme_w_hook = 550
@@ -221,10 +205,8 @@ def build_video():
                          .set_start(0).set_duration(REVEAL_TIME + 0.3)
                          .crossfadeout(0.3))
             visual_elements.append(meme_clip)
-        except Exception as e:
-            print(f"[-] Meme Skipped: {e}")
+        except: pass
 
-    # Typography Engine
     words = script.split()
     time_per_word = total_duration / len(words)
     current_time = 0.0
@@ -264,11 +246,8 @@ def build_video():
     final_audio = CompositeAudioClip(audio_elements)
     final_video = CompositeVideoClip(visual_elements).set_audio(final_audio)
     
-    print("[+] Rendering 30 FPS Masterpiece with Vault Engine & Sequencing...")
     final_video.write_videofile("temp_video.mp4", fps=30, codec="libx264", audio_codec="aac")
-
     os.system("ffmpeg -y -i temp_video.mp4 -filter_complex \"[0:v]setpts=0.8*PTS[v];[0:a]atempo=1.25[a]\" -map \"[v]\" -map \"[a]\" final_tech_viral_video.mp4")
-    print("[SUCCESS] Vault Pipeline Executed Perfectly.")
 
 if __name__ == "__main__":
     build_video()
