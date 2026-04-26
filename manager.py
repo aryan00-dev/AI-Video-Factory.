@@ -1,46 +1,42 @@
 import os
-import google.generativeai as genai
-from duckduckgo_search import DDGS
+from groq import Groq
 
-API_KEY = os.environ.get("GEMINI_API_KEY")
-if not API_KEY:
-    print("[-] Error: GEMINI_API_KEY missing!")
-    exit(1)
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-genai.configure(api_key=API_KEY)
+def generate_script():
+    print("[+] Brain Active: Generating 60-Word Viral Script via Groq Llama-3...")
+    
+    if not GROQ_API_KEY:
+        print("[-] Absolute Error: GROQ_API_KEY not found in environment!")
+        exit(1)
 
-def get_latest_news():
-    print("[+] Radar Active: Scanning Open Web...")
-    news_data = ""
-    try:
-        with DDGS() as ddgs:
-            results = ddgs.text("new open source AI tools", max_results=3)
-            for r in results: news_data += f"- {r['title']}\n"
-    except: pass
-    return news_data
-
-def generate_viral_script(news_data):
-    print("[+] Brain Active: Generating 60-Word Script...")
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    prompt = f"""Tum ek expert AI Tech Video creator ho.
-    News: {news_data}
-    Ek aggressive Hinglish short video script likho.
-    RULES:
-    1. Hook humesha FOMO se start ho (e.g., "Ruko! Agar tum abhi bhi purane tools use kar rahe ho...").
-    2. Exact word count: 55 se 65 words ke beech.
-    3. Tool ka naam aur "Free" nature highlight karo.
-    4. Har 2 sentence ke baad ek shock factor ho.
-    Sirf spoken text do.
+    client = Groq(api_key=GROQ_API_KEY)
+    
+    # Advanced System Prompt for highest retention
+    prompt = """
+    Write a 50-60 word highly engaging Hindi tech script for an Instagram Reel about a crazy, free, and secret AI tool (e.g., Luma Dream Machine, Qwen, Midjourney, etc). 
+    Rules:
+    1. Start exactly with the word "Ruko!". 
+    2. Use words like "khatarnak", "secret", "dimaag kharab", "free". 
+    3. Do not include emojis, hashtags, or bracketed text. Write pure spoken text only.
     """
+    
     try:
-        response = model.generate_content(prompt)
-        return response.text.strip().replace('*', '').replace('"', '')
-    except:
-        return "Ruko! Agar tum abhi bhi ChatGPT use kar rahe ho, toh tumhara dimaag kharab hone wala hai. Yeh naya secret AI tool market mein aag laga raha hai aur yeh free hai. Iska naam hai Qwen aur yeh tumhare ghanto ka kaam second mein karta hai. Abhi try karo."
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama3-8b-8192", # Lightning fast model
+            temperature=0.8
+        )
+        script = chat_completion.choices[0].message.content.strip()
+        
+        with open("current_script.txt", "w", encoding="utf-8") as f:
+            f.write(script)
+            
+        print("[SUCCESS] Viral Script Ready.")
+        print(f"Script Preview: {script[:50]}...")
+    except Exception as e:
+        print(f"[-] Groq Script Engine Failed: {e}")
+        exit(1)
 
 if __name__ == "__main__":
-    news = get_latest_news()
-    script = generate_viral_script(news)
-    with open("current_script.txt", "w", encoding="utf-8") as f:
-        f.write(script)
-    print(f"[SUCCESS] Viral Script Ready.")
+    generate_script()
