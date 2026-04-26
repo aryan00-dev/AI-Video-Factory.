@@ -4,7 +4,7 @@ from groq import Groq
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 def generate_script():
-    print("[+] Brain Active: Generating 60-Word Viral Script via Groq Llama-3...")
+    print("[+] Brain Active: Generating Viral Script via Groq Llama-3.1...")
     
     if not GROQ_API_KEY:
         print("[-] Absolute Error: GROQ_API_KEY not found in environment!")
@@ -22,9 +22,10 @@ def generate_script():
     """
     
     try:
+        # THE FIX: Upgraded to Groq's active fast model
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            model="llama3-8b-8192", # Lightning fast model
+            model="llama-3.1-8b-instant", 
             temperature=0.8
         )
         script = chat_completion.choices[0].message.content.strip()
