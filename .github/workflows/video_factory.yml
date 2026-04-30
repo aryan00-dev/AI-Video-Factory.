@@ -29,11 +29,11 @@ jobs:
         sudo apt-get install -y ffmpeg imagemagick fonts-dejavu-core
         sudo sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml
 
-    - name: Install Python Libraries (Stealth Plugins Added)
+    - name: Install Python Libraries (Stealth & Pillow Locked)
       run: |
         python -m pip install --upgrade pip --break-system-packages
-        # ADDED PLAYWRIGHT-STEALTH TO BYPASS CAPTCHA
-        pip install google-generativeai requests gtts edge-tts pillow==9.5.0 moviepy==1.0.3 numpy==1.24.3 duckduckgo-search playwright playwright-stealth groq --break-system-packages
+        # THE FIX: Locked playwright-stealth to version 1.0.6 to kill the ImportError
+        pip install google-generativeai requests gtts edge-tts pillow==9.5.0 moviepy==1.0.3 numpy==1.24.3 duckduckgo-search playwright playwright-stealth==1.0.6 groq --break-system-packages
         python -m playwright install chromium --with-deps
 
     - name: Execute Radar & Brain (Groq Agent 1)
